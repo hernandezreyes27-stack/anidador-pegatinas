@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="es" data-theme="tecno-light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anidador de pegatinas · Tecnovinyl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style>
+  [data-theme="tecno-light"] {
+    color-scheme: light;
+    --color-base-100: #ffffff;
+    --color-base-200: #fafafa;
+    --color-base-300: #e5e5e5;
+    --color-base-content: #0a0a0a;
+    --color-primary: #2563eb;
+    --color-primary-content: #ffffff;
+    --color-neutral: #0a0a0a;
+    --color-neutral-content: #ffffff;
+    --color-error: #dc2626;
+    --color-error-content: #ffffff;
+    --radius-box: 1rem;
+    --radius-field: 0.75rem;
+    --radius-selector: 0.75rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+  }
+  html, body { font-family: 'Inter', system-ui, sans-serif; font-feature-settings: 'tnum' 1, 'cv11' 1; }
+  .muted { color: #6b7280; }
+  .panel { border: 1px solid #e5e5e5; border-radius: 1rem; background: #fff; }
+  .regla text { font-size: 11px; fill: #9ca3af; font-family: Inter, sans-serif; }
+  .drop.activo { border-color: #2563eb; background: #eff6ff; }
+  .miniatura[aria-pressed="true"] { outline: 2px solid #2563eb; outline-offset: 2px; }
+  :focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body class="bg-base-200 text-base-content min-h-screen">
+
+<header class="border-b border-base-300 bg-base-100">
+  <div class="max-w-[1600px] mx-auto px-6 h-14 flex items-center justify-between">
+    <div class="flex items-baseline gap-3">
+      <span class="font-semibold tracking-tight text-[15px]">Anidador de pegatinas</span>
+      <span class="muted text-sm">Tecnovinyl</span>
+    </div>
+    <span class="muted text-sm hidden sm:block">Imprime y corta en una sola pasada</span>
+  </div>
+</header>
+
+<div class="max-w-[1600px] mx-auto px-6 py-6 grid gap-6 lg:grid-cols-[380px_1fr]">
+
+  <!-- Ajustes -->
+  <aside class="flex flex-col gap-4">
+
+    <section class="panel p-5">
+      <h2 class="font-semibold text-[15px]">Diseños</h2>
+      <p class="muted text-sm mt-1">SVG con el trazado de corte en su propio color. Arte y corte se colocan siempre juntos.</p>
+
+      <label id="drop" class="drop mt-4 flex flex-col items-center justify-center gap-1 rounded-[0.75rem] border border-dashed border-base-300 px-4 py-6 text-center cursor-pointer transition-colors">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="muted" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        <span class="text-sm font-medium">Arrastra los SVG aquí</span>
+        <span class="muted text-xs">o haz clic para elegirlos</span>
+        <input id="archivos" type="file" accept=".svg,image/svg+xml" multiple class="sr-only">
+      </label>
+
+      <ul id="lista" class="mt-3 flex flex-col gap-2"></ul>
+    </section>
+
+    <section class="panel p-5 flex flex-col gap-4">
+      <h2 class="font-semibold text-[15px]">Hoja</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="flex flex-col gap-1.5">
+          <span class="text-sm">Ancho</span>
+          <label class="input w-full"><input id="ancho" type="number" min="100" max="5000" step="1" value="1000"><span class="muted text-sm">mm</span></label>
+        </label>
+        <label class="flex flex-col gap-1.5">
+          <span class="text-sm">Alto</span>
+          <label class="input w-full"><input id="alto" type="number" min="100" max="5000" step="1" value="700"><span class="muted text-sm">mm</span></label>
+        </label>
+      </div>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-sm">Separación entre pegatinas</span>
+        <label class="input w-full"><input id="separacion" type="number" min="0" max="50" step="0.5" value="3"><span class="muted text-sm">mm</span></label>
+      </label>
+    </section>
+
+    <section class="panel p-5 flex flex-col gap-4">
+      <h2 class="font-semibold text-[15px]">Marcas de registro</h2>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-sm">Tipo de marca</span>
+        <select id="marca" class="select w-full"></select>
+      </label>
+      <label id="campo-diametro" class="flex flex-col gap-1.5">
+        <span class="text-sm">Diámetro de los puntos</span>
+        <label class="input w-full"><input id="diametro" type="number" min="1" max="30" step="0.5" value="5"><span class="muted text-sm">mm</span></label>
+        <span class="muted text-xs">Tiene que coincidir con el que espera la cámara de la mesa de corte.</span>
+      </label>
+      <details class="text-sm">
+        <summary class="cursor-pointer muted">Color del trazado de corte en el SVG</summary>
+        <div class="flex items-center gap-3 mt-3">
+          <input id="color" type="color" value="#0bf786" class="h-10 w-14 rounded-[0.75rem] border border-base-300 bg-base-100 p-1">
+          <span id="color-txt" class="text-sm">#0BF786</span>
+        </div>
+      </details>
+    </section>
+
+    <button id="anidar" class="btn btn-primary h-12 text-[15px]" disabled>Anidar pedido</button>
+    <p id="aviso" class="muted text-sm -mt-1">Añade al menos un diseño.</p>
+  </aside>
+
+  <!-- Resultado -->
+  <main class="flex flex-col gap-4 min-w-0">
+    <section class="panel p-5 flex flex-wrap items-center justify-between gap-4 min-h-[76px]">
+      <div id="resumen" class="text-[15px]"><span class="muted">La hoja se muestra a escala. Cambia el tamaño o las marcas y verás cómo queda.</span></div>
+      <a id="descargar" class="btn btn-neutral hidden" href="#" download>Descargar PDF de impresión</a>
+    </section>
+
+    <div id="error" role="alert" class="alert alert-error hidden rounded-[0.75rem]"></div>
+
+    <section class="panel p-4 sm:p-6 relative">
+      <div id="escenario" class="w-full"></div>
+      <div id="cargando" class="hidden absolute inset-0 bg-base-100/85 rounded-[1rem] flex-col items-center justify-center gap-3 text-center px-6">
+        <span class="loading loading-spinner loading-md text-primary"></span>
+        <p class="text-[15px] font-medium">Calculando la mejor colocación</p>
+        <p class="muted text-sm">Prueba giros y encajes para cada modelo. Suele tardar unos segundos por diseño.</p>
+      </div>
+      <p id="pie-hoja" class="muted text-sm mt-3"></p>
+    </section>
+
+    <section id="bloque-hojas" class="hidden flex flex-col gap-3">
+      <h2 class="font-semibold text-[15px]">Hojas del pedido</h2>
+      <div id="miniaturas" class="grid gap-3 grid-cols-[repeat(auto-fill,minmax(180px,1fr))]"></div>
+    </section>
+
+    <section id="bloque-modelos" class="panel hidden overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>Diseño</th><th class="text-right">Tamaño</th><th class="text-right">Pedido</th><th class="text-right">Por hoja</th><th class="text-right">Hojas completas</th><th class="text-right">A hoja mixta</th></tr></thead>
+        <tbody id="tabla-modelos"></tbody>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const fmt = n => n.toLocaleString('es-ES');
+const estado = { disenos: [], resultado: null, hojaSel: 0 };
+
+// ---------- Marcas: mismo cálculo que el motor (motor/marcas.py) ----------
+function repartir(a, b, paso) { const n = Math.max(1, Math.ceil((b - a) / paso)); return [...Array(n + 1)].map((_, i) => a + (b - a) * i / n); }
+const MARCAS = {
+  circulos(W, H, d) {
+    const r = d / 2, c = 5 + r, pts = new Map();
+    repartir(c, W - c, 250).forEach(x => { pts.set(`${x},${c}`, [x, c]); pts.set(`${x},${H - c}`, [x, H - c]); });
+    repartir(c, H - c, 250).forEach(y => { pts.set(`${c},${y}`, [c, y]); pts.set(`${W - c},${y}`, [W - c, y]); });
+    return [...pts.values()].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('');
+  },
+  opos(W, H) {
+    const l = 3, b = 5; let s = '';
+    repartir(b, W - b - l, 200).forEach(x => { s += `<rect x="${x}" y="${b}" width="${l}" height="${l}"/><rect x="${x}" y="${H - b - l}" width="${l}" height="${l}"/>`; });
+    return s + `<rect x="${b + l + 5}" y="${b + 0.5}" width="${W - 2 * (b + l + 5)}" height="2"/>`;
+  },
+  esquinas(W, H) {
+    const a = 10, g = 0.5, b = 5; let s = '';
+    [[b, b, 1, 1], [W - b, b, -1, 1], [b, H - b, 1, -1], [W - b, H - b, -1, -1]].forEach(([x, y, sx, sy]) => {
+      s += `<rect x="${Math.min(x, x + sx * a)}" y="${Math.min(y, y + sy * g)}" width="${a}" height="${g}"/>`;
+      s += `<rect x="${Math.min(x, x + sx * g)}" y="${Math.min(y, y + sy * a)}" width="${g}" height="${a}"/>`;
+    });
+    return s;
+  },
+  ninguna() { return ''; }
+};
+
+// ---------- Hoja a escala ----------
+function config() {
+  return {
+    ancho: +$('#ancho').value || 1000, alto: +$('#alto').value || 700,
+    separacion: +$('#separacion').value, marca: $('#marca').value || 'circulos',
+    diametro: +$('#diametro').value || 5, color: $('#color').value
+  };
+}
+
+function dibujarHoja() {
+  const c = config(), W = c.ancho, H = c.alto;
+  const m = Math.max(W, H) * 0.045;            // margen para la regla
+  const paso = W > 2000 || H > 2000 ? 500 : 100;
+  let regla = '';
+  for (let x = 0; x <= W; x += paso) regla += `<line x1="${x}" y1="${-m * 0.35}" x2="${x}" y2="0" stroke="#d4d4d4" vector-effect="non-scaling-stroke"/><text x="${x}" y="${-m * 0.5}" text-anchor="middle" style="font-size:${m * 0.32}px">${x}</text>`;
+  for (let y = 0; y <= H; y += paso) regla += `<line x1="${-m * 0.35}" y1="${y}" x2="0" y2="${y}" stroke="#d4d4d4" vector-effect="non-scaling-stroke"/><text x="${-m * 0.5}" y="${y}" text-anchor="end" dominant-baseline="middle" style="font-size:${m * 0.32}px">${y}</text>`;
+
+  const r = estado.resultado, hoja = r && r.hojas[estado.hojaSel];
+  const img = hoja ? `<image href="data:image/png;base64,${hoja.png}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none"/>` : '';
+  const marcas = hoja ? '' : `<g fill="#0a0a0a">${MARCAS[c.marca](W, H, c.diametro)}</g>`;
+  const vacio = (!hoja && !estado.disenos.length)
+    ? `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" dominant-baseline="middle" fill="#9ca3af" style="font-size:${Math.min(W, H) * 0.035}px">${W} × ${H} mm</text>` : '';
+
+  $('#escenario').innerHTML = `
+    <svg viewBox="${-m * 1.4} ${-m * 1.1} ${W + m * 2.1} ${H + m * 1.3}" class="w-full h-auto block regla" role="img"
+         aria-label="Vista previa de la hoja de ${W} por ${H} milímetros">
+      ${regla}
+      <rect x="0" y="0" width="${W}" height="${H}" fill="#fff" stroke="#d4d4d4" vector-effect="non-scaling-stroke"/>
+      ${img}${marcas}${vacio}
+    </svg>`;
+
+  $('#pie-hoja').textContent = hoja
+    ? `Hoja ${estado.hojaSel + 1} de ${r.hojas.length}` + (hoja.copias > 1 ? `, se imprime ${hoja.copias} veces` : '') +
+      '. El contorno de corte va en magenta (tinta plana CutContour).'
+    : `${MARCAS_NOMBRES[c.marca] || ''}. Las pegatinas nunca invaden la zona de las marcas.`;
+}
+
+// ---------- Diseños ----------
+function pintarLista() {
+  const ul = $('#lista');
+  ul.innerHTML = '';
+  estado.disenos.forEach((d, i) => {
+    const li = document.createElement('li');
+    li.className = 'flex items-center gap-3 rounded-[0.75rem] border border-base-300 p-2 pr-3';
+    li.innerHTML = `
+      <img src="${d.url}" alt="" class="w-12 h-12 object-contain rounded-lg bg-base-200 p-1">
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-medium truncate" title="${d.nombre}">${d.nombre}</p>
+        <label class="flex items-center gap-2 mt-1">
+          <span class="muted text-xs">Cantidad</span>
+          <input type="number" min="1" max="100000" value="${d.cantidad}" class="input input-sm w-24" aria-label="Cantidad de ${d.nombre}">
+        </label>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-square" aria-label="Quitar ${d.nombre}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>`;
+    li.querySelector('input').addEventListener('input', e => { d.cantidad = Math.max(1, +e.target.value || 1); actualizarAviso(); invalidar(); });
+    li.querySelector('button').addEventListener('click', () => { URL.revokeObjectURL(d.url); estado.disenos.splice(i, 1); invalidar(); pintarLista(); });
+    ul.appendChild(li);
+  });
+  actualizarAviso();
+}
+
+function actualizarAviso() {
+  const hay = estado.disenos.length > 0;
+  $('#anidar').disabled = !hay;
+  $('#aviso').textContent = hay ? `${estado.disenos.length} ${estado.disenos.length === 1 ? 'diseño' : 'diseños'}, ${fmt(estado.disenos.reduce((s, d) => s + d.cantidad, 0))} pegatinas en total.` : 'Añade al menos un diseño.';
+}
+
+function anadir(files) {
+  [...files].filter(f => f.name.toLowerCase().endsWith('.svg')).forEach(f => {
+    estado.disenos.push({ file: f, nombre: f.name.replace(/\.svg$/i, ''), url: URL.createObjectURL(f), cantidad: 100 });
+  });
+  invalidar(); pintarLista();
+}
+
+function invalidar() {
+  if (estado.resultado) {
+    estado.resultado = null;
+    $('#resumen').innerHTML = '<span class="muted">Has cambiado el pedido. Vuelve a anidar para ver las hojas.</span>';
+    $('#descargar').classList.add('hidden');
+    $('#bloque-hojas').classList.add('hidden');
+    $('#bloque-modelos').classList.add('hidden');
+  }
+  dibujarHoja();
+}
+
+// ---------- Anidar ----------
+async function anidar() {
+  const c = config();
+  const fd = new FormData();
+  estado.disenos.forEach(d => fd.append('disenos', d.file, d.file.name));
+  fd.append('cantidades', JSON.stringify(estado.disenos.map(d => d.cantidad)));
+  fd.append('ancho', c.ancho); fd.append('alto', c.alto); fd.append('separacion', c.separacion);
+  fd.append('marca', c.marca); fd.append('diametro', c.diametro); fd.append('color_corte', c.color);
+
+  $('#error').classList.add('hidden');
+  $('#cargando').classList.replace('hidden', 'flex');
+  $('#anidar').disabled = true;
+  $('#anidar').textContent = 'Anidando…';
+  try {
+    const resp = await fetch('/api/anidar', { method: 'POST', body: fd });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se ha podido anidar el pedido.');
+    estado.resultado = data; estado.hojaSel = 0;
+    mostrarResultado();
+  } catch (e) {
+    $('#error').textContent = e.message === 'Failed to fetch' ? 'No hay conexión con el servidor del anidador. Comprueba que está arrancado.' : e.message;
+    $('#error').classList.remove('hidden');
+  } finally {
+    $('#cargando').classList.replace('flex', 'hidden');
+    $('#anidar').disabled = !estado.disenos.length;
+    $('#anidar').textContent = 'Anidar pedido';
+  }
+}
+
+function mostrarResultado() {
+  const r = estado.resultado, c = config();
+  $('#resumen').innerHTML =
+    `<span class="font-semibold">${fmt(r.resumen.hojas)} ${r.resumen.hojas === 1 ? 'hoja' : 'hojas'}</span> de ${c.ancho} × ${c.alto} mm para ` +
+    `${fmt(r.resumen.pegatinas)} pegatinas <span class="muted">con un aprovechamiento del ${String(r.resumen.aprovechamiento).replace('.', ',')} %</span>`;
+  const a = $('#descargar'); a.href = `/api/pdf/${r.id}`; a.classList.remove('hidden');
+
+  const cont = $('#miniaturas'); cont.innerHTML = '';
+  r.hojas.forEach((h, i) => {
+    const b = document.createElement('button');
+    b.className = 'miniatura panel p-2 text-left flex flex-col gap-2 hover:border-neutral-400 transition-colors';
+    b.setAttribute('aria-pressed', i === estado.hojaSel);
+    const quien = h.piezas.length > 1 ? 'Hoja mixta' : h.piezas[0].modelo;
+    b.innerHTML = `
+      <img src="data:image/png;base64,${h.png}" alt="" class="w-full rounded-lg border border-base-300">
+      <span class="flex items-baseline justify-between gap-2 px-1">
+        <span class="text-sm font-medium truncate">${quien}</span>
+        <span class="text-sm ${h.copias > 1 ? 'text-primary font-semibold' : 'muted'}">×${h.copias}</span>
+      </span>
+      <span class="muted text-xs px-1 pb-1">${h.piezas.map(p => `${fmt(p.n)} ${h.piezas.length > 1 ? p.modelo : 'pegatinas'}`).join(', ')}</span>`;
+    b.addEventListener('click', () => { estado.hojaSel = i; cont.querySelectorAll('.miniatura').forEach((x, j) => x.setAttribute('aria-pressed', j === i)); dibujarHoja(); });
+    cont.appendChild(b);
+  });
+  $('#bloque-hojas').classList.remove('hidden');
+
+  $('#tabla-modelos').innerHTML = r.modelos.map(m => `
+    <tr><td class="font-medium">${m.nombre}</td>
+      <td class="text-right muted">${String(m.ancho).replace('.', ',')} × ${String(m.alto).replace('.', ',')} mm</td>
+      <td class="text-right">${fmt(m.cantidad)}</td><td class="text-right">${fmt(m.por_hoja)}</td>
+      <td class="text-right">${fmt(m.hojas_llenas)}</td><td class="text-right">${fmt(m.sobrantes)}</td></tr>`).join('');
+  $('#bloque-modelos').classList.remove('hidden');
+  dibujarHoja();
+}
+
+// ---------- Arranque ----------
+let MARCAS_NOMBRES = {};
+async function iniciar() {
+  let tipos;
+  try { tipos = await (await fetch('/api/marcas')).json(); }
+  catch { tipos = [{ id: 'circulos', nombre: 'Círculos · IECHO / mesas con cámara' }, { id: 'opos', nombre: 'Cuadrados · estilo Summa OPOS' }, { id: 'esquinas', nombre: 'Esquinas en L · Graphtec / Mimaki' }, { id: 'ninguna', nombre: 'Sin marcas' }]; }
+  tipos.forEach(t => { MARCAS_NOMBRES[t.id] = t.nombre.replace(' · ', ', '); });
+  $('#marca').innerHTML = tipos.map(t => `<option value="${t.id}">${t.nombre.replace(' · ', ', ')}</option>`).join('');
+
+  const drop = $('#drop');
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('activo'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('activo'); }));
+  drop.addEventListener('drop', e => anadir(e.dataTransfer.files));
+  $('#archivos').addEventListener('change', e => { anadir(e.target.files); e.target.value = ''; });
+
+  ['#ancho', '#alto', '#separacion', '#diametro'].forEach(s => $(s).addEventListener('input', invalidar));
+  $('#marca').addEventListener('change', () => { $('#campo-diametro').classList.toggle('hidden', $('#marca').value !== 'circulos'); invalidar(); });
+  $('#color').addEventListener('input', e => { $('#color-txt').textContent = e.target.value.toUpperCase(); invalidar(); });
+  $('#anidar').addEventListener('click', anidar);
+  pintarLista(); dibujarHoja();
+}
+iniciar();
+</script>
+</body>
+</html>
